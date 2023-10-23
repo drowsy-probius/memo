@@ -13,7 +13,7 @@
 ### 실행순서
 
 ```mysql
-> CREATE TABLE DATA_BACKUP AS SELECT * FROM DATA
+CREATE TABLE DATA_BACKUP AS SELECT * FROM DATA;
 ```
 
 ### 결과
@@ -26,13 +26,13 @@
 
 1. 빈 테이블 생성
 ```mysql
-> CREATE TABLE DATA_BACKUP LIKE DATA;
+CREATE TABLE DATA_BACKUP LIKE DATA;
 ```
 `mysql` 루트 폴더에서 데이터베이스 이름으로 된 폴더 내에 `DATA_BACKUP.ibd`파일이 생성된다. 
 
 2. `TABLESPACE` 삭제
 ```mysql
-> ALTER TABLE DATA_BACKUP DISCARD TABLESPACE;
+ALTER TABLE DATA_BACKUP DISCARD TABLESPACE;
 ```
 파일 시스템에서 테이블 관련 파일이 삭제된다.
 
@@ -44,7 +44,7 @@ $ sudo cp DATA.idb DATA_BACKUP.idb
 
 4. `TABLESPACE` 불러오기
 ```mysql
-> ALTER TABLE DATA_BACKUP IMPORT TABLESPACE;
+ALTER TABLE DATA_BACKUP IMPORT TABLESPACE;
 ```
 
 ### 결과
@@ -70,7 +70,7 @@ cfg 메타데이터 파일이 없어서 데이터를 가져오지 못했다.
 
 1. 원본 테이블에서 메타데이터 내보내기
 ```mysql
-> FLUSH TABLES DATA FOR EXPORT;
+FLUSH TABLES DATA FOR EXPORT;
 ```
 
 약 130ms 소요.
@@ -100,18 +100,18 @@ $ sudo chown mysql:mysql DATA_BACKUP_1.idb DATA_BACKUP_1.cfg
 
 3. 원본 테이블 lock 해제
 ```mysql
-> UNLOCK TABLES;
+UNLOCK TABLES;
 ```
 
 4. 빈 테이블 생성
 ```mysql
-> CREATE TABLE DATA_BACKUP LIKE DATA;
+CREATE TABLE DATA_BACKUP LIKE DATA;
 ```
 `mysql` 루트 폴더에서 데이터베이스 이름으로 된 폴더 내에 `DATA_BACKUP.ibd`파일이 생성된다. 
 
 5. `TABLESPACE` 삭제
 ```mysql
-> ALTER TABLE DATA_BACKUP DISCARD TABLESPACE;
+ALTER TABLE DATA_BACKUP DISCARD TABLESPACE;
 ```
 파일 시스템에서 테이블 관련 파일이 삭제된다.
 
@@ -124,10 +124,12 @@ $ sudo mv DATA_BACKUP_1.cfg DATA_BACKUP.cfg
 
 7. `TABLESPACE` 불러오기
 ```mysql
-> ALTER TABLE DATA_BACKUP IMPORT TABLESPACE;
+ALTER TABLE DATA_BACKUP IMPORT TABLESPACE;
 ```
 
 23분 소요
 
 ### 결과
 성공
+
+1h 30m 초과 >> (31m 30s)으로 단축
