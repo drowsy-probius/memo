@@ -65,6 +65,9 @@ try:
   fetch_size = 500
 
   next_set = select_cursor.fetchmany(fetch_size)
+
+  # 현재 세션에서 binlog 생성하지 않도록 하여 과도한 로그 생성을 막는다 
+  update_cursor.execute("SET sql_log_bin = 0;")
   while len(next_set):
     next_set_string = ", ".join(
       [f"""({', '.join([f"'{elem}'" for elem in tp])})""" for tp in next_set]
@@ -84,6 +87,8 @@ try:
 except Exception as e:
   print(e)
 finally:
+  # binlog 옵션 초기화
+  update_cursor.execute("SET sql_log_bin = 1;")
   global_conn.commit()
   select_cursor.close()
   update_cursor.close()
