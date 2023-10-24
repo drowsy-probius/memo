@@ -41,51 +41,54 @@ ROLLBACK;
 ... # imports mysql, ...
 
 try:
-    global_conn = database.get_connection()
-    select_cursor = global_conn.cursor(buffered=True)
-    update_cursor = global_conn.cursor()
+  TABLE_NAME = "DATA_TABLE"
+  PRIMARY_KEYS = "`PK1`,`PK2`,`PK3`"
 
-    select_query = """
-    SELECT `PK1`,`PK2`,`PK3`
-        FROM DATA_TABLE
-        WHERE TYPE_CODE = 'OLD_TYP'
-    """
-    logger.info(f"target query: {select_query}")
-    select_cursor.execute(
-        select_query,
-        multi=True,
+  global_conn = database.get_connection()
+  select_cursor = global_conn.cursor(buffered=True)
+  update_cursor = global_conn.cursor()
+
+  select_query = f"""
+  SELECT {PRIMARY_KEYS}
+    FROM {TABLE_NAME}
+   WHERE TYPE_CODE = 'OLD_TYP'
+  """
+  logger.info(f"target query: {select_query}")
+  select_cursor.execute(
+    select_query,
+    multi=True,
+  )
+  total_size = select_cursor.rowcount
+  logger.info(f"Total row fetched: {total_size} rows")
+
+  affected_rows = 0
+  fetch_size = 500
+
+  next_set = select_cursor.fetchmany(fetch_size)
+  while len(next_set):
+    next_set_string = ", ".join(
+      [f"""({', '.join([f"'{elem}'" for elem in tp])})""" for tp in next_set]
     )
-    total_size = select_cursor.rowcount
-    logger.info(f"Total row fetched: {total_size} rows")
+    query = f"""
+      UPDATE {TABLE_NAME}
+         SET TYPE_CODE = 'NEW_TYP'
+       WHERE ({PRIMARY_KEYS}) 
+          IN ( {next_set_string} )
+         AND TYPE_CODE = 'OLD_TYP'
+    """
+    update_cursor.execute(query)
+    affected_rows += update_cursor.rowcount
 
-    affected_rows = 0
-    fetch_size = 500
-
+    logger.info(f"{affected_rows} of {total_size} rows are affected.")
     next_set = select_cursor.fetchmany(fetch_size)
-    while len(next_set):
-        next_set_string = ", ".join(
-            [f"""({', '.join([f"'{elem}'" for elem in tp])})""" for tp in next_set]
-        )
-        query = f"""
-            UPDATE DATA_TABLE
-               SET TYPE_CODE = 'NEW_TYP'
-             WHERE (`PK1`,`PK2`,`PK3`) 
-                   IN ( {next_set_string} )
-               AND TYPE_CODE = 'OLD_TYP'
-        """
-        update_cursor.execute(query)
-        affected_rows += update_cursor.rowcount
-
-        logger.info(f"{affected_rows} of {total_size} rows are affected.")
-        next_set = select_cursor.fetchmany(fetch_size)
 except Exception as e:
-    print(e)
+  print(e)
 finally:
-    global_conn.commit()
-    select_cursor.close()
-    update_cursor.close()
-    global_conn.close()
-    logger.info("Resource Relaese Done")
+  global_conn.commit()
+  select_cursor.close()
+  update_cursor.close()
+  global_conn.close()
+  logger.info("Resource Relaese Done")
 ```
 
 ### 결과
@@ -93,3 +96,7 @@ finally:
 첫 `SELECT`에서 시간이 오래 걸리지 않는다.
 
 전체 수행 시간은 첫번째 방법보다 오래 걸릴 수 있다. 그렇지만 각 쿼리 수행 시간은 30초를 넘기지 않는다. 따라서 `Lock wait timeout` 에러를 방지할 수 있을 것이다.
+
+3h 30m + ...
+
+비효율적인가?
