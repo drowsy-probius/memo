@@ -13,7 +13,7 @@
 ## 시도 1 - 단순 업데이트 수행
 
 ### 코드
-```mysql
+```sql
 START TRANSACTION;
 
 UPDATE DATA_TABLE
@@ -105,3 +105,36 @@ finally:
 3h 30m + ...
 
 비효율적인가?
+
+오버 엔지니어링이다.
+
+
+## 시도 3 - sql로 분할 업데이트
+
+테이블의 칼럼에 날짜나 고유 시퀀스를 저장하는 칼럼이 있다면 해당 칼럼을 기준으로 범위를 나누어 여러번 업데이트한다.
+
+```sql
+UPDATE DATA_TABLE
+   SET TYPE_CODE = 'NEW_TYP'
+ WHERE TYPE_CODE = 'OLD_TYP'
+   AND YYYYMMDD < '2022-01-01'
+;
+
+UPDATE DATA_TABLE
+   SET TYPE_CODE = 'NEW_TYP'
+ WHERE TYPE_CODE = 'OLD_TYP'
+   AND YYYYMMDD >= '2022-01-01'
+   AND YYYYMMDD < '2023-01-01'
+;
+
+UPDATE DATA_TABLE
+   SET TYPE_CODE = 'NEW_TYP'
+ WHERE TYPE_CODE = 'OLD_TYP'
+   AND YYYYMMDD >= '2023-01-01'
+;
+```
+
+### 결과
+
+가장 깔끔한 것 같다.
+
